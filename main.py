@@ -1,6 +1,7 @@
 import time
+import json
 import subprocess
-from typing import List, Union
+from typing import List, Union, Tuple
 from concurrent.futures import ThreadPoolExecutor
 
 from matplotlib import pyplot as plt
@@ -19,7 +20,7 @@ def get_sorting_time(count: int, tests: int) -> float:
     return float(raw_result.stdout.decode().split('\n')[-2].split()[1])
 
 
-def get_abc(arr_n: List[int], arr_t: List[Union[int, float]]) -> List[float]:
+def get_abc(arr_n: List[int], arr_t: List[Union[int, float]]) -> Tuple[float, float, float]:
     sum_n = sum(arr_n)
     sum_n2 = sum(i ** 2 for i in arr_n)
     sum_t = sum(arr_t)
@@ -30,13 +31,13 @@ def get_abc(arr_n: List[int], arr_t: List[Union[int, float]]) -> List[float]:
     sum_n2logn = sum((n ** 2) * numpy.log2(n) for n in arr_n)
     sum_n2logn2 = sum((n ** 2) * numpy.log2(n) ** 2 for n in arr_n)
 
-    system_1 = numpy.array([
+    system = numpy.array([
         [sum_n2logn2, sum_n2logn, sum_nlogn],
         [sum_n2logn, sum_n2, sum_n],
         [sum_nlogn, sum_n, len(arr_n)]
     ])
     t_1 = numpy.array([sum_tnlogn, sum_tn, sum_t])
-    return numpy.linalg.solve(system_1, t_1)
+    return tuple(numpy.linalg.solve(system, t_1))
 
 
 def main():
@@ -45,15 +46,15 @@ def main():
         print(" " * 8, end='')
         print("\r", end='')
 
-    def nlogn(a, b, c, n):
-        return a * n * numpy.log2(n) + b * n + c
+    def nlogn(a_coefficient, b_coefficient, c_coefficient, n):
+        return a_coefficient * n * numpy.log2(n) + b_coefficient * n + c_coefficient
 
-    array_sizes = [i * 2000 for i in range(1, 20004, 4)]
-    # array_sizes = [1, 2, 4, 8, *(i * 10 for i in range(1, 20))]
+    # array_sizes = [*(i * 100 for i in range(1, 200, 2)), *(i * 20000 for i in range(1, 3000))]
+    array_sizes = [i * 10 for i in range(1, 100)]
     time_stats = []
     last_print_time = 0
-    executor = ThreadPoolExecutor(max_workers=8)
-    iterator = executor.map(lambda x: time_stats.append(get_sorting_time(x, 16)), array_sizes)
+    executor = ThreadPoolExecutor(max_workers=4)
+    iterator = executor.map(lambda x: time_stats.append(get_sorting_time(x, 8)), array_sizes)
     counter = 0
     print("0.0%", end='')
     for _ in iterator:
@@ -65,11 +66,25 @@ def main():
 
     executor.shutdown()
     clear()
-    print()
-    abc = get_abc(array_sizes, time_stats)
-    theoretical_time_stats = [nlogn(*abc, n) for n in array_sizes]
+    a, b, c = get_abc(array_sizes, time_stats)
+    print(
+        f"{a:.10f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.10f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.10f} = T"
+    )
+    theoretical_time_stats = [nlogn(a, b, c, n) for n in array_sizes]
+    json_data = {
+        "practical": {
+            str(a): b for a, b in zip(array_sizes, time_stats)
+        },
+        "theoretical": {
+            str(a): b for a, b in zip(array_sizes, theoretical_time_stats)
+        }
+    }
+    with open("results.json", "w") as out:
+        json.dump(json_data, out, indent=4)
+    plt.figure(figsize=(25, 8))
     plt.plot(array_sizes, time_stats)
     plt.plot(array_sizes, theoretical_time_stats, color="orange")
+    plt.savefig("./graph_pictures/auto.png")
     plt.show()
 
 

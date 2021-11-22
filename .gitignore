@@ -7,3 +7,4 @@ __pycache__
 .directory
 graph_pictures/
 inplace_heap_sort
+results.json
