@@ -49,16 +49,16 @@ def main():
     def nlogn(a_coefficient, b_coefficient, c_coefficient, n):
         return a_coefficient * n * numpy.log2(n) + b_coefficient * n + c_coefficient
 
-    # array_sizes = [*(i * 100 for i in range(1, 200, 2)), *(i * 20000 for i in range(1, 3000))]
-    array_sizes = [i * 10 for i in range(1, 100)]
+    # array_sizes = [*(i * 100 for i in range(1, 200, 2)), *(i * 20000 for i in range(1, 1001))]
+    array_sizes = [i * 10 for i in range(1, 1000)]
     time_stats = []
     last_print_time = 0
-    executor = ThreadPoolExecutor(max_workers=4)
+    executor = ThreadPoolExecutor(max_workers=8)
     iterator = executor.map(lambda x: time_stats.append(get_sorting_time(x, 8)), array_sizes)
     counter = 0
     print("0.0%", end='')
     for _ in iterator:
-        if (time.time() - last_print_time) > 0.2:
+        if (time.time() - last_print_time) > 0.5:
             clear()
             print(round((counter / len(array_sizes)) * 100, 2), end='%', flush=True)
             last_print_time = time.time()
@@ -81,10 +81,10 @@ def main():
     }
     with open("results.json", "w") as out:
         json.dump(json_data, out, indent=4)
-    plt.figure(figsize=(24, 8))
-    plt.plot(array_sizes, time_stats)
+    plt.figure(figsize=(24, 12))
+    plt.plot(array_sizes, time_stats, linewidth=0.7)
     plt.plot(array_sizes, theoretical_time_stats, color="orange")
-    plt.savefig("./graph_pictures/auto.png")
+    plt.savefig("./graph_pictures/auto.png", dpi=400)
     plt.show()
 
 
