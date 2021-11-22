@@ -68,7 +68,7 @@ def main():
     clear()
     a, b, c = get_abc(array_sizes, time_stats)
     print(
-        f"{a:.10f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.10f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.10f} = T"
+        f"{a:.12f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.12f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.12f} = T"
     )
     theoretical_time_stats = [nlogn(a, b, c, n) for n in array_sizes]
     json_data = {
@@ -81,7 +81,7 @@ def main():
     }
     with open("results.json", "w") as out:
         json.dump(json_data, out, indent=4)
-    plt.figure(figsize=(25, 8))
+    plt.figure(figsize=(24, 8))
     plt.plot(array_sizes, time_stats)
     plt.plot(array_sizes, theoretical_time_stats, color="orange")
     plt.savefig("./graph_pictures/auto.png")
