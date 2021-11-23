@@ -50,11 +50,11 @@ def main():
         return a_coefficient * n * numpy.log2(n) + b_coefficient * n + c_coefficient
 
     # array_sizes = [*(i * 100 for i in range(1, 200, 2)), *(i * 20000 for i in range(1, 1001))]
-    array_sizes = [i * 10 for i in range(1, 1000)]
-    time_stats = []
+    array_sizes = [i * 100 for i in range(1, 1001)]
+    time_stats = {}
     last_print_time = 0
     executor = ThreadPoolExecutor(max_workers=8)
-    iterator = executor.map(lambda x: time_stats.append(get_sorting_time(x, 8)), array_sizes)
+    iterator = executor.map(lambda x: time_stats.__setitem__(x, get_sorting_time(x, 12)), array_sizes)
     counter = 0
     print("0.0%", end='')
     for _ in iterator:
@@ -66,23 +66,19 @@ def main():
 
     executor.shutdown()
     clear()
-    a, b, c = get_abc(array_sizes, time_stats)
+    a, b, c = get_abc(array_sizes, [time_stats[i] for i in array_sizes])
     print(
         f"{a:.12f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.12f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.12f} = T"
     )
     theoretical_time_stats = [nlogn(a, b, c, n) for n in array_sizes]
     json_data = {
-        "practical": {
-            str(a): b for a, b in zip(array_sizes, time_stats)
-        },
-        "theoretical": {
-            str(a): b for a, b in zip(array_sizes, theoretical_time_stats)
-        }
+        "practical": {i: time_stats[i] for i in array_sizes},
+        "theoretical": {str(a): b for a, b in zip(array_sizes, theoretical_time_stats)}
     }
     with open("results.json", "w") as out:
         json.dump(json_data, out, indent=4)
     plt.figure(figsize=(24, 12))
-    plt.plot(array_sizes, time_stats, linewidth=0.7)
+    plt.plot(array_sizes, [time_stats[i] for i in array_sizes], linewidth=0.7)
     plt.plot(array_sizes, theoretical_time_stats, color="orange")
     plt.savefig("./graph_pictures/auto.png", dpi=400)
     plt.show()
