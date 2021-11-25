@@ -21,23 +21,31 @@ def get_sorting_time(count: int, tests: int) -> float:
 
 
 def get_abc(arr_n: List[int], arr_t: List[Union[int, float]]) -> Tuple[float, float, float]:
-    sum_n = sum(arr_n)
-    sum_n2 = sum(i ** 2 for i in arr_n)
-    sum_t = sum(arr_t)
+    #   I(a, b, c) = Σ(a*ni*log(ni) + b*ni + c - Ti)^2 -> min
+    #   dI/da = 2Σ(a*ni*log(ni) + b*ni + c - Ti)*ni*log(ni) = 0
+    #   dI/db = 2Σ(a*ni*log(ni) + b*ni + c - Ti)*ni = 0
+    #   dI/dc = 2Σ(a*ni*log(ni) + b*ni + c - Ti) = 0
+    #
+    #  / a*Σ(ni*log(ni))^2 + b*Σni^2*log(ni) + c*Σni*log(ni) = ΣTi*ni*log(ni)
+    # <  a*Σni^2*log(ni)   + b*Σni^2         + c*Σni         = ΣTi*ni
+    #  \ a*Σni*log(ni)     + b*Σni           + c*k           = ΣTi
 
-    sum_tn = sum(n * t for n, t in zip(arr_n, arr_t))
-    sum_tnlogn = sum(n * t * numpy.log2(n) for n, t in zip(arr_n, arr_t))
-    sum_nlogn = sum(n * numpy.log2(n) for n in arr_n)
-    sum_n2logn = sum((n ** 2) * numpy.log2(n) for n in arr_n)
-    sum_n2logn2 = sum((n ** 2) * numpy.log2(n) ** 2 for n in arr_n)
+    sum_n = sum(arr_n)  # Σni
+    sum_n2 = sum(i ** 2 for i in arr_n)  # Σni^2
+    sum_t = sum(arr_t)  # ΣTi
+    sum_tn = sum(n * t for n, t in zip(arr_n, arr_t))  # ΣTi*ni
+    sum_tnlogn = sum(n * t * numpy.log2(n) for n, t in zip(arr_n, arr_t))  # ΣTi*ni*log(ni)
+    sum_nlogn = sum(n * numpy.log2(n) for n in arr_n)  # Σni*log(ni)
+    sum_n2logn = sum((n ** 2) * numpy.log2(n) for n in arr_n)  # Σni^2*log(ni)
+    sum_n2logn2 = sum((n ** 2) * numpy.log2(n) ** 2 for n in arr_n)  # Σ(ni*log(ni))^2
 
     system = numpy.array([
         [sum_n2logn2, sum_n2logn, sum_nlogn],
         [sum_n2logn, sum_n2, sum_n],
         [sum_nlogn, sum_n, len(arr_n)]
     ])
-    t_1 = numpy.array([sum_tnlogn, sum_tn, sum_t])
-    return tuple(numpy.linalg.solve(system, t_1))
+    t_vector = numpy.array([sum_tnlogn, sum_tn, sum_t])
+    return tuple(numpy.linalg.solve(system, t_vector))
 
 
 def main():
