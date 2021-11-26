@@ -58,7 +58,7 @@ def main():
         return a_coefficient * n * numpy.log2(n) + b_coefficient * n + c_coefficient
 
     # array_sizes = [*(i * 100 for i in range(1, 200, 2)), *(i * 20000 for i in range(1, 1001))]
-    array_sizes = [i * 100 for i in range(1, 1001)]
+    array_sizes = [i * 1000 for i in range(1, 1001)]
     time_stats = {}
     last_print_time = 0
     executor = ThreadPoolExecutor(max_workers=8)
@@ -74,7 +74,8 @@ def main():
 
     executor.shutdown()
     clear()
-    a, b, c = get_abc(array_sizes, [time_stats[i] for i in array_sizes])
+    data_for_abc = [i for i in array_sizes if i < 100000]
+    a, b, c = get_abc(data_for_abc, [time_stats[i] for i in array_sizes][:len(data_for_abc)])
     print(
         f"{a:.12f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.12f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.12f} = T"
     )
