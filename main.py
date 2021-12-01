@@ -10,7 +10,7 @@ import numpy
 
 def get_sorting_time(count: int, tests: int) -> float:
     raw_result = subprocess.run(
-        ["./inplace_heap_sort/inplace_heap_sort", str(count), str(tests)],
+        ["nice", "-n", "-10", "./inplace_heap_sort/inplace_heap_sort", str(count), str(tests)],
         capture_output=True
     )
     if raw_result.returncode != 0:
@@ -62,7 +62,7 @@ def main():
     time_stats = {}
     last_print_time = 0
     executor = ThreadPoolExecutor(max_workers=8)
-    iterator = executor.map(lambda x: time_stats.__setitem__(x, get_sorting_time(x, 12)), array_sizes)
+    iterator = executor.map(lambda x: time_stats.__setitem__(x, get_sorting_time(x, 8)), array_sizes)
     counter = 0
     print("0.0%", end='')
     for _ in iterator:
@@ -74,7 +74,7 @@ def main():
 
     executor.shutdown()
     clear()
-    data_for_abc = [i for i in array_sizes if i < 100000]
+    data_for_abc = array_sizes  # [i for i in array_sizes if i < 100000]
     a, b, c = get_abc(data_for_abc, [time_stats[i] for i in array_sizes][:len(data_for_abc)])
     print(
         f"{a:.12f}*n*log2(n) {'+' if b >= 0 else '-'} {numpy.abs(b):.12f}*n {'+' if c >= 0 else '-'} {numpy.abs(c):.12f} = T"
